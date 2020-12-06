@@ -1,0 +1,23 @@
+List of opcodes and register addresses.
+
+op code bit 3 off : Register read in on, bit 3 on register output on
+
+Opcodes:
+
+SET : R, 0001 : 01 : Set Register
+WRM : R, 1010 : 0A : Write Register To Memory
+WRA : R, 1110 : 0E : Write Register to Address
+LRA : R, 0111 : 0D/7? : Load From Address
+CMP : R, 1100 : 0C : Compare
+
+Regiter Addresses:
+
+IP 1000 : 8
+R0 0100 : 4
+R1 1100 : c
+R2 0010 : 2
+R3 1010 : a
+AR 0110 : 6
+SP 1110 : E?
+MP 0001 : 1
+TC 0011 : 3
