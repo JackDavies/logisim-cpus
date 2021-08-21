@@ -5,10 +5,20 @@ op code bit 3 off : Register read in on, bit 3 on register output on
 Opcodes:
 
 SET : R, 0001 : 01 : Set Register
-WRM : R, 1010 : 0A : Write Register To Memory
+XXX : R, 1010 : 0A : Write Register To Memory
 WRA : R, 1110 : 0E : Write Register to Address
-LRA : R, 0111 : 0D/7? : Load From Address
+LRA : R, 0111 : 07 : Load From Address
 CMP : R, 1100 : 0C : Compare
+ADD : R, 1000 : 08 : Add
+MUL : R, 1010 : 0A : Multiply - not implemented
+
+SUB : R, 1011 : 0B : Substract - NI
+DIV : R, 1111 : 0F : Divide - NI
+
+??
+JET : 0, 1001 : 09 :Jump equal to
+JGT : 0, 1011 : 0B :
+JLT : 0, 1101 : 0D
 
 Regiter Addresses:
 
@@ -19,5 +29,5 @@ R2 0010 : 2
 R3 1010 : a
 AR 0110 : 6
 SP 1110 : E?
-MP 0001 : 1
+MP 0001 : 1 
 TC 0011 : 3
