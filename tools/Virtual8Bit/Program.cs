@@ -1,0 +1,284 @@
+﻿using System;
+using System.ComponentModel;
+using System.IO;
+using System.Threading;
+
+namespace Virtual8Bit
+{
+    class MainClass
+    {
+        private enum CpuState { HALT, RUN, STEP }
+
+        private static BackgroundWorker worker;
+        private static Cpu cpu;
+        private static byte[] displayMemory;
+        private static int sleepMs = 10;
+        private static CpuState cpuState = CpuState.HALT;
+
+        private static void PrintTerminal()
+        {
+            Console.WriteLine("Terminal");
+
+            int terminalPointer = 0;
+            for (int row = 0; row <= 7; row++)
+            {
+                for (int column = 0; column <= 31; column++)
+                {
+                    char c = (char)cpu.TerminalMemory[terminalPointer];
+
+                    if (c == '\n')
+                    {
+                        terminalPointer++;
+                        break;
+                    }
+
+                    Console.Write(c);
+                    terminalPointer++;
+                }
+                Console.WriteLine();
+            }
+
+            Console.WriteLine("Terminal Input");
+            //Console.WriteLine("1 2 3 4 5 6 7");
+            Console.WriteLine();
+        }
+
+        private static void PrintRegisters()
+        {
+            Console.WriteLine("Registers");
+
+            Console.BackgroundColor = ConsoleColor.Red;
+            Console.ForegroundColor = ConsoleColor.Black;
+            Console.Write($"IR:");
+            Console.Write("{0:x2}|", cpu.IR);
+            Console.BackgroundColor = ConsoleColor.Black;
+
+            Console.BackgroundColor = ConsoleColor.Cyan;
+            Console.ForegroundColor = ConsoleColor.Black;
+            Console.Write($"IP:");
+            Console.Write("{0:x2}|", cpu.IP);
+            Console.BackgroundColor = ConsoleColor.Black;
+
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.Write($"MP:");
+            Console.Write("{0:x2}|", cpu.MP);
+            Console.ForegroundColor = ConsoleColor.White;
+
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.Write($"AR:");
+            Console.Write("{0:x2}|", cpu.AR);
+            Console.ForegroundColor = ConsoleColor.White;
+
+            Console.Write($"R0:");
+            Console.Write("{0:x2}|", cpu.R0);
+
+            Console.Write($"R1:");
+            Console.Write("{0:x2}|", cpu.R1);
+
+            Console.Write($"R2:");
+            Console.Write("{0:x2}|", cpu.R2);
+
+            Console.Write($"R3:");
+            Console.Write("{0:x2}|", cpu.R3);
+
+            Console.Write($"TC:");
+            Console.Write("{0:x2}|", cpu.TC);
+
+            if (cpu.LessThan)
+            {
+                Console.ForegroundColor = ConsoleColor.Green;
+            }
+            Console.Write("<");
+            Console.ForegroundColor = ConsoleColor.White;
+
+            if (cpu.EqualTo)
+            {
+                Console.ForegroundColor = ConsoleColor.Green;
+            }
+            Console.Write("=");
+            Console.ForegroundColor = ConsoleColor.White;
+
+            if (cpu.GraterThan)
+            {
+                Console.ForegroundColor = ConsoleColor.Green;
+            }
+            Console.Write(">");
+            Console.ForegroundColor = ConsoleColor.White;
+
+
+            Console.WriteLine();
+        }
+
+        private static void PrintMemory()
+        {
+            Console.WriteLine("Memory");
+
+            int pointer = 0;
+
+            for (int row = 0; row <= 7; row++)
+            {
+                for (int column = 0; column <= 31; column++)
+                {
+                    if (pointer == cpu.IP)
+                    {
+                        Console.BackgroundColor = ConsoleColor.Cyan;
+                        Console.ForegroundColor = ConsoleColor.Black;
+                    }
+                    if (pointer == cpu.MP)
+                    {
+                        Console.ForegroundColor = ConsoleColor.Green;
+                    }
+
+                    Console.Write("{0:x2}", cpu.Memory[pointer]);
+
+                    Console.BackgroundColor = ConsoleColor.Black;
+                    Console.ForegroundColor = ConsoleColor.White;
+
+                    Console.Write(" ");
+                    pointer++;
+                }
+                Console.WriteLine();
+            }
+        }
+
+        private static void PrintState()
+        {
+            if (cpuState == CpuState.HALT)
+            {
+                Console.WriteLine("HALT");
+            }
+            else if (cpuState == CpuState.RUN)
+            {
+                Console.WriteLine($"RUN Sleep:{sleepMs}");
+            }
+        }
+
+        private static void Print()
+        {
+            Console.SetCursorPosition(0, 0);
+            PrintTerminal();
+            PrintRegisters();
+            PrintMemory();
+            PrintState();
+        }
+
+        private static bool LoadBin(string fileName)
+        {
+            if (File.Exists(fileName))
+            {
+                FileInfo fileInfo = new FileInfo(fileName);
+
+                if (fileInfo.Length > 255)
+                {
+                    Console.WriteLine("LoadBin failed, file to large");
+                    return false;
+                }
+                else
+                {
+                    byte[] fileBytes = File.ReadAllBytes(fileName);
+
+                    for (int i = 0; i <= fileBytes.Length - 1; i++)
+                    {
+                        cpu.Memory[i] = fileBytes[i];
+                    }
+                    return true;
+                }
+            }
+            else
+            {
+                Console.WriteLine($"{fileName} Does not exist");
+                return false;
+            }
+        }
+
+        private static void Worker_DoWork(object sender, DoWorkEventArgs e)
+        {
+            //cpuState = CpuState.RUN;
+            Print();
+            while (worker.CancellationPending == false)
+            {
+                if (cpuState == CpuState.RUN)
+                {
+                    Print();
+                    cpu.Step();
+                    Thread.Sleep(sleepMs);
+                }
+                else
+                {
+                    Thread.Sleep(10); //Slow down thread when CPU halted 
+                }
+            }
+            e.Cancel = true;
+        }
+
+        public static void Main(string[] args)
+        {
+
+            displayMemory = new byte[256];
+            cpu = new Cpu();
+
+            if (args.Length == 0)
+            {
+                Console.WriteLine("No file provided");
+                return;
+            }
+
+            if (LoadBin(args[0]) == false)
+            {
+                return;
+            }
+
+            worker = new BackgroundWorker();
+            worker.WorkerSupportsCancellation = true;
+            worker.DoWork += Worker_DoWork;
+
+            worker.RunWorkerAsync();
+
+            while (true)
+            {
+                ConsoleKey key = Console.ReadKey(true).Key;
+
+                if (key == ConsoleKey.Escape)
+                {
+                    worker.CancelAsync();
+                    break;
+                }
+
+                if (key == ConsoleKey.Add)
+                {
+                    if (sleepMs > 1)
+                    {
+                        sleepMs--;
+                    }
+                }
+
+                if (key == ConsoleKey.Subtract)
+                {
+                    sleepMs++;
+                }
+
+                if (key == ConsoleKey.H)
+                {
+                    cpuState = CpuState.HALT;
+                }
+
+                if (key == ConsoleKey.R)
+                {
+                    cpuState = CpuState.RUN;
+                }
+
+                if (key == ConsoleKey.S && cpuState != CpuState.RUN)
+                {
+                    Print();
+                    cpu.Step();
+                    while (Console.KeyAvailable && key == ConsoleKey.S)
+                    {
+                        key = Console.ReadKey(true).Key;                        
+                    }
+                }
+
+                Thread.Sleep(1);
+            }
+        }
+    }
+}

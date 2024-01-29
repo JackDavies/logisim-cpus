@@ -2,3 +2,13 @@
 8bit/tools/123rom.run
 
 8bit/test-pad.circ
+
+tools/.vs/
+
+tools/LogisimCpuAssembler/bin/
+
+tools/LogisimCpuAssembler/obj/
+
+tools/Virtual8Bit/bin/
+
+tools/Virtual8Bit/obj/
