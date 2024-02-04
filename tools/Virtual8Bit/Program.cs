@@ -17,30 +17,13 @@ namespace Virtual8Bit
 
         private static void PrintTerminal()
         {
-            Console.WriteLine("Terminal");
-
-            int terminalPointer = 0;
-            for (int row = 0; row <= 7; row++)
+            Console.WriteLine("Terminal Output");
+            foreach (string s in cpu.Terminal.Text)
             {
-                for (int column = 0; column <= 31; column++)
-                {
-                    char c = (char)cpu.TerminalMemory[terminalPointer];
-
-                    if (c == '\n')
-                    {
-                        terminalPointer++;
-                        break;
-                    }
-
-                    Console.Write(c);
-                    terminalPointer++;
-                }
-                Console.WriteLine();
+                Console.Write("                                ");              //Clear any text on current terminal line
+                Console.SetCursorPosition(0, Console.CursorTop);
+                Console.WriteLine(s);
             }
-
-            Console.WriteLine("Terminal Input");
-            //Console.WriteLine("1 2 3 4 5 6 7");
-            Console.WriteLine();
         }
 
         private static void PrintRegisters()
@@ -213,9 +196,10 @@ namespace Virtual8Bit
 
         public static void Main(string[] args)
         {
-
+            Console.Clear();
             displayMemory = new byte[256];
             cpu = new Cpu();
+
 
             if (args.Length == 0)
             {

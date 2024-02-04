@@ -47,8 +47,7 @@ namespace Virtual8Bit
 
         public byte[] Memory { get; private set; }
 
-        public byte[] TerminalMemory { get; private set; }
-        public byte TerminalPosition { get; private set; } = 0x00;
+        public Terminal Terminal { get; private set; }
 
         public bool EqualTo { get; private set; } = false;
         public bool GraterThan  { get; private set; } = false;
@@ -197,15 +196,14 @@ namespace Virtual8Bit
                     break;
             }
 
-            UpdateTerminalMemory();
+            UpdateTerminal();
         }
 
-        private void UpdateTerminalMemory()
+        private void UpdateTerminal()
         {
             if (Registers[RegisterCodes.TC] != 0x00)
-            { 
-                TerminalMemory[TerminalPosition] = Registers[RegisterCodes.TC];
-                TerminalPosition++;
+            {
+                Terminal.AddChar(Registers[RegisterCodes.TC]);
                 Registers[RegisterCodes.TC] = 0x00;
             }
         }
@@ -241,11 +239,7 @@ namespace Virtual8Bit
                 Memory[i] = 0x00;
             }
 
-            TerminalMemory = new byte[256];
-            for (int i = 0; i <= TerminalMemory.Length - 1; i++)
-            {
-                TerminalMemory[i] = 0x00;
-            }
+            Terminal = new Terminal();
         }
 
         #endregion
