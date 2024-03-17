@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.ComponentModel;
 using System.IO;
 using System.Threading;
@@ -24,6 +24,43 @@ namespace Virtual8Bit
                 Console.SetCursorPosition(0, Console.CursorTop);
                 Console.WriteLine(s);
             }
+
+            Console.WriteLine("Terminal Inpit");
+            byte bit = 8;
+            while (bit != 0)
+            {
+                Console.ForegroundColor = ConsoleColor.White;
+                Console.Write("|");
+                bit--;
+                if (cpu.Terminal.GetKeyboardBitState((byte)(bit)))
+                {
+                    Console.ForegroundColor = ConsoleColor.Green;
+                }
+                else
+                {
+                    Console.ForegroundColor = ConsoleColor.White;
+                }
+
+                Console.Write("{0:000}", 0b00000001 << bit);
+            }
+
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.Write("|HEX:{0:x2}|", cpu.Terminal.KeyboardValue);
+            Console.Write("|DEC:{0:000}|", cpu.Terminal.KeyboardValue);
+
+            if (cpu.Terminal.KeyboardInputEnabled)
+            {
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.Write(" ON ");
+            }
+            else
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.Write(" OFF");
+            }
+
+            Console.WriteLine();
+            Console.ForegroundColor = ConsoleColor.White;
         }
 
         private static void PrintRegisters()
@@ -259,6 +296,51 @@ namespace Virtual8Bit
                     {
                         key = Console.ReadKey(true).Key;                        
                     }
+                }
+
+                if (key == ConsoleKey.K)
+                {
+                    cpu.Terminal.KeyboardInputEnabled = !cpu.Terminal.KeyboardInputEnabled;
+                }
+
+                if (key == ConsoleKey.D0)
+                {
+                    cpu.Terminal.ToggleKeyboardBit(0);
+                }
+
+                if (key == ConsoleKey.D9)
+                {
+                    cpu.Terminal.ToggleKeyboardBit(1);
+                }
+
+                if (key == ConsoleKey.D8)
+                {
+                    cpu.Terminal.ToggleKeyboardBit(2);
+                }
+
+                if (key == ConsoleKey.D7)
+                {
+                    cpu.Terminal.ToggleKeyboardBit(3);
+                }
+
+                if (key == ConsoleKey.D6)
+                {
+                    cpu.Terminal.ToggleKeyboardBit(4);
+                }
+
+                if (key == ConsoleKey.D5)
+                {
+                    cpu.Terminal.ToggleKeyboardBit(5);
+                }
+
+                if (key == ConsoleKey.D4)
+                {
+                    cpu.Terminal.ToggleKeyboardBit(6);
+                }
+
+                if (key == ConsoleKey.D3)
+                {
+                    cpu.Terminal.ToggleKeyboardBit(7);
                 }
 
                 Thread.Sleep(1);

@@ -39,6 +39,8 @@ namespace Virtual8Bit
 
         bool _ipModified = false;
 
+        byte _tcOut = 0x00;
+
         #endregion
 
         #region Properties
@@ -83,11 +85,19 @@ namespace Virtual8Bit
         {
             byte register = (byte)(Registers[RegisterCodes.IR] >> 4);
             //TickIp();
-            Registers[register] = Memory[Registers[RegisterCodes.IP]];
 
-            if (register == RegisterCodes.IP)
+            if (register == RegisterCodes.TC)
             {
-                _ipModified = true;
+                _tcOut = Memory[Registers[RegisterCodes.IP]];
+            }
+            else
+            {
+                Registers[register] = Memory[Registers[RegisterCodes.IP]];
+
+                if (register == RegisterCodes.IP)
+                {
+                    _ipModified = true;
+                }
             }
         }
 
@@ -195,16 +205,14 @@ namespace Virtual8Bit
                     Jlt();
                     break;
             }
-
-            UpdateTerminal();
         }
 
         private void UpdateTerminal()
         {
-            if (Registers[RegisterCodes.TC] != 0x00)
+            if (_tcOut != 0x00)
             {
-                Terminal.AddChar(Registers[RegisterCodes.TC]);
-                Registers[RegisterCodes.TC] = 0x00;
+                Terminal.AddChar(_tcOut);
+                _tcOut = 0x00;
             }
         }
 
@@ -219,7 +227,19 @@ namespace Virtual8Bit
 
         public void Step()
         {
+            if (Terminal.KeyboardInputEnabled)
+            {
+                Registers[RegisterCodes.TC] = Terminal.KeyboardValue;
+            }
+            else
+            {
+                Registers[RegisterCodes.TC] = 0x00;
+            }
+
             Interperate();
+
+            UpdateTerminal();
+
             if (_ipModified == false)
             {
                 TickIp();

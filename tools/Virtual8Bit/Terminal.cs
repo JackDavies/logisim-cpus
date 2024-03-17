@@ -5,6 +5,7 @@ namespace Virtual8Bit
 {
     public class Terminal
     {
+
         #region Public Properties
 
         public string[] Text { get; private set; } = new string[8];
@@ -12,6 +13,10 @@ namespace Virtual8Bit
         public byte CurrentRow { get; private set; } = 0;
 
         public byte CurrentColumn { get; private set; } = 0;
+
+        public byte KeyboardValue { get; private set; } = 0x00;
+
+        public bool KeyboardInputEnabled { get; set; } = false;
 
         #endregion
 
@@ -55,6 +60,57 @@ namespace Virtual8Bit
             {
                 Text[CurrentRow] += (char)c;
                 CurrentColumn++;
+            }
+        }
+
+        public bool GetKeyboardBitState(byte bitNumber)
+        {
+            if (bitNumber >= 0 && bitNumber <= 7)
+            {
+                byte bit = (byte)(0b00000001 << bitNumber);
+                return (byte)(KeyboardValue & bit) > 0;
+            }
+            else
+            {
+                throw new Exception($"GetKeyboardBitState bit {bitNumber} out of range");
+            }
+        }
+
+        public void SetKeyboardBitOff(byte bitNumber)
+        {
+            if (bitNumber >= 0 && bitNumber <= 7)
+            {
+                byte bit = (byte)((0b11111110 << bitNumber) | (0b11111110 >> 8 - bitNumber));
+                KeyboardValue = (byte)(KeyboardValue & bit);
+            }
+            else
+            {
+                throw new Exception($"SetKeyboardBitOff bit {bitNumber} out of range");
+            }
+        }
+
+        public void SetKeyboardBitOn(byte bitNumber)
+        {
+            if (bitNumber >= 0 && bitNumber <= 7)
+            {
+                byte bit = (byte)(0x01 << bitNumber);
+                KeyboardValue = (byte)(KeyboardValue | bit);
+            }
+            else
+            {
+                throw new Exception($"SetKeyboardBitOn bit {bitNumber} out of range");
+            }
+        }
+
+        public void ToggleKeyboardBit(byte bitNumber)
+        {
+            if (GetKeyboardBitState(bitNumber))
+            {
+                SetKeyboardBitOff(bitNumber);
+            }
+            else
+            {
+                SetKeyboardBitOn(bitNumber);
             }
         }
 
